@@ -23,7 +23,7 @@ public:
         }
     }
 
-    u16 GetCellState(u16 cellNo) const
+    u16 GetCell(u16 cellNo) const
     {
         u16 skipBits = cellNo * u16(9);
         u8 skipBytes = skipBits / u16(8);
@@ -37,7 +37,7 @@ public:
         return state;
     }
 
-    void SetCellState(u16 cellNo, u16 state)
+    void SetCell(u16 cellNo, u16 state)
     {
         u16 skipBits = cellNo * u16(9);
         u8 skipBytes = skipBits / u16(8);
@@ -57,7 +57,7 @@ public:
         byte2 = byte2 | ((state << u16(8)) >> u16(8));
     }
 
-    static u8 StateToNum(u16 cell)
+    static u8 CellToNum(u16 cell)
     {
         if (cell == 0 || (cell & (cell - u16(1))) != 0)
         {
@@ -76,7 +76,7 @@ public:
         return n;
     }
 
-    static u16 NumToState(u8 n)
+    static u16 NumToCell(u8 n)
     {
         if (u8(1) <= n && n <= u8(9))
         {
@@ -93,7 +93,7 @@ public:
     {
         for (u8 i = 0u; i != 81u; ++i)
         {
-            os << int(State::StateToNum(state.GetCellState(i)));
+            os << int(State::CellToNum(state.GetCell(i)));
         }
 
         return os;
@@ -106,7 +106,7 @@ public:
             u8 n;
             is >> n;
             assert(u8('0') <= n && n <= u8('9'));
-            state.SetCellState(i, State::NumToState(n - u8('0')));
+            state.SetCell(i, State::NumToCell(n - u8('0')));
         }
 
         return is;

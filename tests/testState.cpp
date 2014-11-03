@@ -19,13 +19,13 @@ void TestGetAndSet()
 
     for (uint8_t cellNo = 0u; cellNo < 81u; ++cellNo)
     {
-        AssertEqual(__LINE__, s.GetCellState(cellNo), 511);
-        s.SetCellState(cellNo, 137);
+        AssertEqual(__LINE__, s.GetCell(cellNo), 511);
+        s.SetCell(cellNo, 137);
     }
 
     for (uint8_t cellNo = 0u; cellNo < 81u; ++cellNo)
     {
-        AssertEqual(__LINE__, s.GetCellState(cellNo), 137);
+        AssertEqual(__LINE__, s.GetCell(cellNo), 137);
     }
 }
 
@@ -44,7 +44,7 @@ void TestIo()
 
     for (int i = 0; i != 81; ++i)
     {
-        s.SetCellState(i, State::NumToState(i % 9 + 1));
+        s.SetCell(i, State::NumToCell(i % 9 + 1));
     }
 
     oss << s;
