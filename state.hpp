@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cstdint>
+#include <iostream>
 
 class State
 {
@@ -21,7 +23,7 @@ public:
         }
     }
 
-    u16 GetCellState(u16 cellNo)
+    u16 GetCellState(u16 cellNo) const
     {
         u16 skipBits = cellNo * u16(9);
         u8 skipBytes = skipBits / u16(8);
@@ -53,5 +55,60 @@ public:
 
         byte2 = byte2 & ((mask << u16(8)) >> u16(8));
         byte2 = byte2 | ((state << u16(8)) >> u16(8));
+    }
+
+    static u8 StateToNum(u16 cell)
+    {
+        if (cell == 0 || (cell & (cell - u16(1))) != 0)
+        {
+            return 0;
+        }
+
+        u8 n = 9;
+        u16 nn = 1;
+
+        while (nn != cell)
+        {
+            nn <<= 1;
+            --n;
+        }
+
+        return n;
+    }
+
+    static u16 NumToState(u8 n)
+    {
+        if (u8(1) <= n && n <= u8(9))
+        {
+            --n;
+            return u16(1) << (u8(8) - n);
+        }
+
+        assert(n == 0);
+
+        return 511;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const State& state)
+    {
+        for (u8 i = 0u; i != 81u; ++i)
+        {
+            os << int(State::StateToNum(state.GetCellState(i)));
+        }
+
+        return os;
+    }
+
+    friend std::istream& operator>>(std::istream& is, State& state)
+    {
+        for (u8 i = 0u; i != 81u; ++i)
+        {
+            u8 n;
+            is >> n;
+            assert(u8('0') <= n && n <= u8('9'));
+            state.SetCellState(i, State::NumToState(n - u8('0')));
+        }
+
+        return is;
     }
 };

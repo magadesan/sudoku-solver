@@ -1,9 +1,11 @@
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 #include "../state.hpp"
 
-void AssertEqual(int line, int a, int b)
+template <typename U, typename V>
+void AssertEqual(int line, const U& a, const V& b)
 {
     if (a != b)
     {
@@ -11,7 +13,7 @@ void AssertEqual(int line, int a, int b)
     }
 }
 
-int main()
+void TestGetAndSet()
 {
     State s;
 
@@ -25,6 +27,53 @@ int main()
     {
         AssertEqual(__LINE__, s.GetCellState(cellNo), 137);
     }
+}
+
+void TestIo()
+{
+    State s;
+    std::ostringstream oss;
+    oss << s;
+    
+    AssertEqual(
+        __LINE__,
+        oss.str(),
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+
+    oss.str("");
+
+    for (int i = 0; i != 81; ++i)
+    {
+        s.SetCellState(i, State::NumToState(i % 9 + 1));
+    }
+
+    oss << s;
+
+    AssertEqual(
+        __LINE__,
+        oss.str(),
+        "123456789123456789123456789123456789123456789123456789123456789123456789123456789");
+
+    oss.str("");
+
+    std::istringstream iss;
+    iss.str("123123123456456456789789789123123123456456456789789789123123123456456456789789789");
+    iss >> s;
+    oss << s;
+
+    AssertEqual(
+        __LINE__,
+        oss.str(),
+        "123123123456456456789789789123123123456456456789789789123123123456456456789789789");
+
+    iss.str("");
+    oss.str("");
+}
+
+int main()
+{
+    TestGetAndSet();
+    TestIo();
 
     return 0;
 }
