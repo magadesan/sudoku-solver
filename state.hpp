@@ -6,8 +6,8 @@
 class State
 {
 private:
-    typedef std::uint8_t u8;
-    typedef std::uint16_t u16;
+    using u8 = std::uint8_t;
+    using u16 = std::uint16_t;
 
     std::array<u8, 92> mBytes;
 
@@ -21,7 +21,7 @@ public:
         }
     }
 
-    std::uint16_t GetCellState(u16 cellNo)
+    u16 GetCellState(u16 cellNo)
     {
         u16 skipBits = cellNo * u16(9);
         u8 skipBytes = skipBits / u16(8);

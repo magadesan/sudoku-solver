@@ -32,7 +32,7 @@ int main()
     for (uint8_t cellNo = 0u; cellNo < 81u; ++cellNo)
     {
         std::cout << "Cell " << int(cellNo) << ": ";
-        
+
         for (int i = 0; i != 3; i++)
         {
             std::cout << int(GetCellGroup(cellNo)[i]) << ' ';
