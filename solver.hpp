@@ -45,7 +45,7 @@ private:
                 u16 subcell = mCurrState->GetCell(subcellNo);
                 u16 newSubcell = (subcell & mask);
 
-                if (subcell != newSubcell) // TODO: only mark dirty if value finalised? #performance
+                if (subcell != newSubcell && (newSubcell & (newSubcell - u8(1))) == u8(0))
                 {
                     for (auto subgroupNo : GetCellGroups(subcellNo))
                     {

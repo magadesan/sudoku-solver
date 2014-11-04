@@ -40,7 +40,7 @@ std::array<std::array<uint8_t, 9>, 27> CreateGroups()
 
 const std::array<std::array<uint8_t, 9>, 27>& GetGroups()
 {
-    static std::array<std::array<uint8_t, 9>, 27> groups = CreateGroups();
+    static const std::array<std::array<uint8_t, 9>, 27> groups = CreateGroups();
     return groups;
 }
 
