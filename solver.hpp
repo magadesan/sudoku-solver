@@ -47,6 +47,12 @@ private:
 
                 if (subcell != newSubcell && (newSubcell & (newSubcell - u8(1))) == u8(0))
                 {
+                    if (newSubcell == u8(0))
+                    {
+                        mContradiction = true;
+                        return;
+                    }
+
                     for (auto subgroupNo : GetCellGroups(subcellNo))
                     {
                         mDirtyGroups.Push(subgroupNo);
@@ -75,6 +81,11 @@ private:
                 }
 
                 ProcessFinalisedCell(cellNo, cell);
+
+                if (mContradiction)
+                {
+                    return;
+                }
             }
         }
     }
