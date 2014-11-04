@@ -68,6 +68,13 @@ public:
         {
             u16 cell = GetCell(i);
             u8 possibilities = NumPossibilities(cell);
+
+            // Shortcut: can't do better than 2
+            if (possibilities == u8(2))
+            {
+                return i;
+            }
+
             if (possibilities > u8(1) && possibilities < bestPossibilities)
             {
                 bestCellNo = i;
@@ -81,12 +88,7 @@ public:
     // TODO: there are other ways to do this, investigate their #performance
     static u8 NumPossibilities(u16 cell)
     {
-        static std::array<u8, 8> countTriplet = {{0, 1, 1, 2, 1, 2, 2, 3}};
-
-        return (
-            countTriplet[cell >> u16(6)] +
-            countTriplet[u16(cell << u16(10)) >> u16(13)] +
-            countTriplet[u16(cell << u16(13)) >> u16(13)]);
+        return __builtin_popcount(cell);
     }
 
     static u8 CellToNum(u16 cell)
