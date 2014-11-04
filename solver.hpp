@@ -2,7 +2,9 @@
 
 #include <cassert>
 #include <cstdint>
+#include <functional>
 #include <sstream>
+#include <vector>
 
 #include "callbackQueue.hpp"
 #include "state.hpp"
@@ -14,7 +16,8 @@ private:
     using u8 = std::uint8_t;
     using u16 = std::uint16_t;
 
-    State mState;
+    State* mCurrState = nullptr;
+    std::vector<State>* mCurrSolutions = nullptr;
     CallbackQueue mDirtyGroups;
     bool mContradiction = false;
 
@@ -39,7 +42,7 @@ private:
                 if (subcellNo == cellNo)
                     continue;
 
-                u16 subcell = mState.GetCell(subcellNo);
+                u16 subcell = mCurrState->GetCell(subcellNo);
                 u16 newSubcell = (subcell & mask);
 
                 if (subcell != newSubcell) // TODO: only mark dirty if value finalised? #performance
@@ -50,7 +53,7 @@ private:
                     }
                 }
 
-                mState.SetCell(subcellNo, newSubcell);
+                mCurrState->SetCell(subcellNo, newSubcell);
             }
         }
     }
@@ -61,7 +64,7 @@ private:
 
         for (auto cellNo : group)
         {
-            u16 cell = mState.GetCell(cellNo);
+            u16 cell = mCurrState->GetCell(cellNo);
 
             if ((cell & (cell - u16(1))) == 0)
             {
@@ -76,20 +79,7 @@ private:
         }
     }
 
-public:
-    Solver(State state)
-    :
-        mState(std::move(state))
-    {
-        for (u8 i = 0u; i != 27u; ++i)
-        {
-            mDirtyGroups.Push(i);
-        }
-    }
-
-    const State& GetState() { return mState; }
-
-    void Solve()
+    void ProcessCurrState()
     {
         while (!mDirtyGroups.Empty())
         {
@@ -100,5 +90,103 @@ public:
                 break;
             }
         }
+    }
+
+    void MarkAllGroupsDirty()
+    {
+        for (u8 i = 0u; i != 27u; ++i)
+        {
+            mDirtyGroups.Push(i);
+        }
+    }
+
+    void Guess(u8 cellNo, u16 cell)
+    {
+        mCurrState->SetCell(cellNo, cell);
+        ProcessFinalisedCell(cellNo, cell);
+    }
+
+    void SolveImpl(const State& state)
+    {
+        State currState = state;
+        mCurrState = &currState;
+
+        ProcessCurrState();
+
+        ProcessingExhausted();
+    }
+
+    void SolveImplWithGuess(const State& state, u8 cellNo, u16 cell)
+    {
+        State currState = state;
+        mCurrState = &currState;
+
+        Guess(cellNo, cell);
+        ProcessCurrState();
+
+        ProcessingExhausted();
+    }
+
+    void ProcessingExhausted()
+    {
+        if (mContradiction)
+        {
+            mContradiction = false;
+            return;
+        }
+
+        // TODO: find non-finalised cell with fewest possibilities? #performance
+        u8 guessCellNo = mCurrState->PickNonFinalisedCell();
+
+        if (guessCellNo == u8(255))
+        {
+            mCurrSolutions->push_back(*mCurrState);
+            return;
+        }
+
+        u16 cell = mCurrState->GetCell(guessCellNo);
+        u16 newCell = u16(1) << u16(8);
+
+        State* backupState = mCurrState;
+
+        while (newCell > u16(0))
+        {
+            if ((newCell & cell) != u16(0))
+            {
+                SolveImplWithGuess(*backupState, guessCellNo, newCell);
+            }
+
+            newCell >>= u16(1);
+        }
+
+        mCurrState = backupState;
+    }
+
+public:
+    State ShallowSolve(const State& state)
+    {
+        MarkAllGroupsDirty();
+
+        State currState = state;
+        mCurrState = &currState;
+
+        ProcessCurrState();
+
+        mCurrState = nullptr;
+
+        return currState;
+    }
+
+    std::vector<State> Solve(const State& state)
+    {
+        std::vector<State> solutions;
+        mCurrSolutions = &solutions;
+
+        MarkAllGroupsDirty();
+        SolveImpl(state);
+
+        mCurrSolutions = nullptr;
+
+        return solutions;
     }
 };

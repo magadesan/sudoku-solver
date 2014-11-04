@@ -59,6 +59,36 @@ public:
         byte2 = byte2 | ((state << u16(8)) >> u16(8));
     }
 
+    u8 PickNonFinalisedCell()
+    {
+        u8 bestCellNo = 255;
+        u8 bestPossibilities = 255;
+
+        for (u8 i = 0u; i != 81u; ++i)
+        {
+            u16 cell = GetCell(i);
+            u8 possibilities = NumPossibilities(cell);
+            if (possibilities > u8(1) && possibilities < bestPossibilities)
+            {
+                bestCellNo = i;
+                bestPossibilities = possibilities;
+            }
+        }
+
+        return bestCellNo;
+    }
+
+    // TODO: there are other ways to do this, investigate their #performance
+    static u8 NumPossibilities(u16 cell)
+    {
+        static std::array<u8, 8> countTriplet = {{0, 1, 1, 2, 1, 2, 2, 3}};
+
+        return (
+            countTriplet[cell >> u16(6)] +
+            countTriplet[u16(cell << u16(10)) >> u16(13)] +
+            countTriplet[u16(cell << u16(13)) >> u16(13)]);
+    }
+
     static u8 CellToNum(u16 cell)
     {
         if (cell == 0 || (cell & (cell - u16(1))) != 0)

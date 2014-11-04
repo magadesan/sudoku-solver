@@ -5,17 +5,17 @@
 
 #include "checkEqual.hpp"
 
-std::string StringSolve(const std::string& sudoku)
+std::string StringShallowSolve(const std::string& sudoku)
 {
     std::istringstream iss(sudoku);
     State s;
     iss >> s;
 
-    Solver solver(std::move(s));
-    solver.Solve();
+    Solver solver;
+    State solution = solver.ShallowSolve(s);
 
     std::ostringstream oss;
-    oss << solver.GetState();
+    oss << solution;
 
     return oss.str();
 }
@@ -43,7 +43,7 @@ int main()
 
     for (auto& pair : solverPairs)
     {
-        CheckEqual(__LINE__, StringSolve(pair[0]), pair[1]);
+        CheckEqual(__LINE__, StringShallowSolve(pair[0]), pair[1]);
     }
 
     return 0;
