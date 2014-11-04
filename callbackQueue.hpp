@@ -8,7 +8,7 @@ class CallbackQueue
 {
 private:
     using u8 = std::uint8_t;
-    static const u8 mCapacity = 81u;
+    static const u8 mCapacity = 27u;
     static const u8 mQueueArraySize = mCapacity + 1u;
     
     std::array<u8, mQueueArraySize> mElements;

@@ -35,7 +35,7 @@ int main()
 
         for (int i = 0; i != 3; i++)
         {
-            std::cout << int(GetCellGroup(cellNo)[i]) << ' ';
+            std::cout << int(GetCellGroups(cellNo)[i]) << ' ';
         }
 
         std::cout << std::endl;

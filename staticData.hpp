@@ -44,7 +44,7 @@ const std::array<std::array<uint8_t, 9>, 27>& GetGroups()
     return groups;
 }
 
-std::array<uint8_t, 3> GetCellGroup(uint8_t cellNo)
+std::array<uint8_t, 3> GetCellGroups(uint8_t cellNo)
 {
     return std::array<uint8_t, 3>{{
         uint8_t(cellNo / 9),

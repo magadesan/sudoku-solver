@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <iostream>
 
+// TODO: Try dedicated u16 for each cell #performance
+
 class State
 {
 private:
