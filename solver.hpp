@@ -30,61 +30,52 @@ private:
     {
         auto& group = GetGroups()[groupNo];
 
-        u16 mask = 511;
+        std::array<u16, 9> localGroup;
 
-        for (auto cellNo : group)
+        for (u8 i = 0u; i != 9u; ++i)
+            localGroup[i] = mCurrState->GetCell(group[i]);
+
+        u16 finals = 0u;
+        u16 sum = 0u;
+
+        for (u8 i = 0u; i != 9u; ++i)
         {
-            u16 cell = mCurrState->GetCell(cellNo);
-            u16 cellOld = cell;
-            cell &= mask;
-
-            mCurrState->SetCell(cellNo, cell);
-
-            if ((cell & (cell - u16(1))) == 0)
-            {
-                if (cell == 0)
-                {
-                    mContradiction = true;
-                    break;
-                }
-
-                mask &= ~cell;
-
-                if (cell != cellOld)
-                {
-                    MarkCellGroups(cellNo);
-                }
-            }
+            u16 cell = localGroup[i];
+            cell *= ((cell & (cell - u16(1))) == 0);
+            finals |= cell;
+            sum += cell;
         }
 
-        mask = 511;
-
-        for (auto it = group.rbegin(); it != group.rend(); ++it)
+        if (sum != finals) // TODO: Is this a perfect test for a collision?
         {
-            auto cellNo = *it;
-            u16 cell = mCurrState->GetCell(cellNo);
-            u16 cellOld = cell;
-            cell &= mask;
-            mCurrState->SetCell(cellNo, cell);
-
-            if ((cell & (cell - u16(1))) == 0)
-            {
-                if (cell == 0)
-                {
-                    mContradiction = true;
-                    break;
-                }
-
-                mask &= ~cell;
-
-                if (cell != cellOld)
-                {
-                    MarkCellGroups(cellNo);
-                }
-            }
+            mContradiction = true;
+            return;
         }
 
-        mDirtyGroups.PopElement(groupNo);
+        u16 mask = ~finals;
+        for (u8 i = 0u; i != 9; ++i)
+        {
+            u16 cell = localGroup[i];
+
+            if ((cell & (cell - u16(1))) != 0)
+            {
+                u8 cellNo = group[i];
+                cell &= mask;
+
+                if ((cell & (cell - u16(1))) == 0)
+                {
+                    if (cell == 0)
+                    {
+                        mContradiction = true;
+                        return;
+                    }
+
+                    MarkCellGroups(cellNo);
+                }
+
+                mCurrState->SetCell(cellNo, cell);
+            }
+        }
     }
 
     void ProcessCurrState()
