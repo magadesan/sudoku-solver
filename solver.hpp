@@ -64,13 +64,29 @@ private:
         }
     }
 
+    void MarkCellGroups(u8 cellNo, u8 srcGroupNo)
+    {
+        for (auto groupNo : GetCellGroups(cellNo))
+        {
+            if (groupNo != srcGroupNo)
+            {
+                mDirtyGroups.Push(groupNo);
+            }
+        }
+    }
+
     void ProcessGroup(u8 groupNo)
     {
         auto& group = GetGroups()[groupNo];
 
+        u16 mask = 511;
+
         for (auto cellNo : group)
         {
             u16 cell = mCurrState->GetCell(cellNo);
+            u16 cellOld = cell;
+            cell &= mask;
+            mCurrState->SetCell(cellNo, cell);
 
             if ((cell & (cell - u16(1))) == 0)
             {
@@ -80,7 +96,44 @@ private:
                     break;
                 }
 
-                ProcessFinalisedCell(cellNo, cell);
+                mask &= ~cell;
+
+                if (cell != cellOld)
+                {
+                    MarkCellGroups(cellNo, groupNo);
+                }
+
+                if (mContradiction)
+                {
+                    return;
+                }
+            }
+        }
+
+        mask = 511;
+
+        for (auto it = group.rbegin(); it != group.rend(); ++it)
+        {
+            auto cellNo = *it;
+            u16 cell = mCurrState->GetCell(cellNo);
+            u16 cellOld = cell;
+            cell &= mask;
+            mCurrState->SetCell(cellNo, cell);
+
+            if ((cell & (cell - u16(1))) == 0)
+            {
+                if (cell == 0)
+                {
+                    mContradiction = true;
+                    break;
+                }
+
+                mask &= ~cell;
+
+                if (cell != cellOld)
+                {
+                    MarkCellGroups(cellNo, groupNo);
+                }
 
                 if (mContradiction)
                 {
@@ -146,7 +199,6 @@ private:
             return;
         }
 
-        // TODO: find non-finalised cell with fewest possibilities? #performance
         u8 guessCellNo = mCurrState->PickNonFinalisedCell();
 
         if (guessCellNo == u8(255))
