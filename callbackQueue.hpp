@@ -8,8 +8,8 @@ class CallbackQueue
 {
 private:
     using u8 = std::uint8_t;
-    
-    std::uint32_t mFlags = 0u;
+    using u32 = std::uint32_t;
+    u32 mFlags = 0u;
 
 public:
     bool Empty() const { return mFlags == 0u; }
@@ -21,6 +21,8 @@ public:
         assert(x < 27u);
         mFlags |= 1u << x;
     }
+
+    void PushFlags(u32 flags) { mFlags |= flags; }
     
     u8 Pop()
     {
@@ -28,8 +30,13 @@ public:
             return u8(255);
 
         u8 ret = __builtin_ctz(mFlags);
-        mFlags &= ~(1u << ret);
+        PopElement(ret);
         
         return ret;
+    }
+
+    void PopElement(u8 element)
+    {
+        mFlags &= ~(1u << element);
     }
 };

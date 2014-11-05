@@ -21,6 +21,7 @@ private:
     CallbackQueue mDirtyGroups;
     bool mContradiction = false;
 
+/*
     void MarkCellDirty(u8 cellNo)
     {
         for (auto groupNo : GetCellGroups(cellNo))
@@ -28,7 +29,9 @@ private:
             mDirtyGroups.Push(groupNo);
         }
     }
+*/
 
+/*
     void ProcessFinalisedCell(u8 cellNo, u16 cell)
     {
         u16 mask = ~cell;
@@ -63,16 +66,11 @@ private:
             }
         }
     }
+*/
 
     void MarkCellGroups(u8 cellNo, u8 srcGroupNo)
     {
-        for (auto groupNo : GetCellGroups(cellNo))
-        {
-            if (groupNo != srcGroupNo)
-            {
-                mDirtyGroups.Push(groupNo);
-            }
-        }
+        mDirtyGroups.PushFlags(GetCellGroups(cellNo));
     }
 
     void ProcessGroup(u8 groupNo)
@@ -141,6 +139,8 @@ private:
                 }
             }
         }
+
+        mDirtyGroups.PopElement(groupNo);
     }
 
     void ProcessCurrState()
@@ -158,16 +158,14 @@ private:
 
     void MarkAllGroupsDirty()
     {
-        for (u8 i = 0u; i != 27u; ++i)
-        {
-            mDirtyGroups.Push(i);
-        }
+        mDirtyGroups.PushFlags((~0u) - ((~0u) << 27u));
+        assert(mDirtyGroups.Size() == 27u);
     }
 
     void Guess(u8 cellNo, u16 cell)
     {
         mCurrState->SetCell(cellNo, cell);
-        ProcessFinalisedCell(cellNo, cell);
+        MarkCellGroups(cellNo, 255u);
     }
 
     void SolveImpl(const State& state)

@@ -44,11 +44,10 @@ const std::array<std::array<uint8_t, 9>, 27>& GetGroups()
     return groups;
 }
 
-std::array<uint8_t, 3> GetCellGroups(uint8_t cellNo)
+std::uint32_t GetCellGroups(uint8_t cellNo)
 {
-    return std::array<uint8_t, 3>{{
-        uint8_t(cellNo / 9),
-        uint8_t(9 + cellNo % 9),
-        uint8_t(18 + 3 * (cellNo / 27) + (cellNo % 9) / 3)
-    }};
+    return (
+        (1u << (cellNo / 9u)) |
+        (1u << (9u + cellNo % 9u)) |
+        (1u << (18u + 3u * (cellNo / 27u) + (cellNo % 9u) / 3u)));
 }
