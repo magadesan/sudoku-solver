@@ -20,9 +20,10 @@ int main()
     q.Push(7);
     q.Push(5);
 
-    AssertEqual(__LINE__, q.PopBack(), 7);
-    AssertEqual(__LINE__, q.PopFront(), 1);
-    AssertEqual(__LINE__, q.PopBack(), 5);
+    AssertEqual(__LINE__, q.Pop(), 1);
+    AssertEqual(__LINE__, q.Pop(), 5);
+    AssertEqual(__LINE__, q.Pop(), 7);
+    AssertEqual(__LINE__, q.Empty(), true);
 
     return 0;
 }

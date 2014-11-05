@@ -147,7 +147,7 @@ private:
     {
         while (!mDirtyGroups.Empty())
         {
-            ProcessGroup(mDirtyGroups.PopFront());
+            ProcessGroup(mDirtyGroups.Pop());
 
             if (mContradiction)
             {
