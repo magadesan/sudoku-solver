@@ -21,7 +21,7 @@ private:
     CallbackQueue mDirtyGroups;
     bool mContradiction = false;
 
-    void MarkCellGroups(u8 cellNo, u8 srcGroupNo)
+    void MarkCellGroups(u8 cellNo)
     {
         mDirtyGroups.PushFlags(GetCellGroups(cellNo));
     }
@@ -37,6 +37,7 @@ private:
             u16 cell = mCurrState->GetCell(cellNo);
             u16 cellOld = cell;
             cell &= mask;
+
             mCurrState->SetCell(cellNo, cell);
 
             if ((cell & (cell - u16(1))) == 0)
@@ -51,12 +52,7 @@ private:
 
                 if (cell != cellOld)
                 {
-                    MarkCellGroups(cellNo, groupNo);
-                }
-
-                if (mContradiction)
-                {
-                    return;
+                    MarkCellGroups(cellNo);
                 }
             }
         }
@@ -83,12 +79,7 @@ private:
 
                 if (cell != cellOld)
                 {
-                    MarkCellGroups(cellNo, groupNo);
-                }
-
-                if (mContradiction)
-                {
-                    return;
+                    MarkCellGroups(cellNo);
                 }
             }
         }
@@ -118,7 +109,7 @@ private:
     void Guess(u8 cellNo, u16 cell)
     {
         mCurrState->SetCell(cellNo, cell);
-        MarkCellGroups(cellNo, 255u);
+        MarkCellGroups(cellNo);
     }
 
     void SolveImpl(const State& state)
