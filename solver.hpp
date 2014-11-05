@@ -21,53 +21,6 @@ private:
     CallbackQueue mDirtyGroups;
     bool mContradiction = false;
 
-/*
-    void MarkCellDirty(u8 cellNo)
-    {
-        for (auto groupNo : GetCellGroups(cellNo))
-        {
-            mDirtyGroups.Push(groupNo);
-        }
-    }
-*/
-
-/*
-    void ProcessFinalisedCell(u8 cellNo, u16 cell)
-    {
-        u16 mask = ~cell;
-
-        for (auto groupNo : GetCellGroups(cellNo))
-        {
-            auto& group = GetGroups()[groupNo];
-
-            for (auto subcellNo : group)
-            {
-                if (subcellNo == cellNo)
-                    continue;
-
-                u16 subcell = mCurrState->GetCell(subcellNo);
-                u16 newSubcell = (subcell & mask);
-
-                if (subcell != newSubcell && (newSubcell & (newSubcell - u8(1))) == u8(0))
-                {
-                    if (newSubcell == u8(0))
-                    {
-                        mContradiction = true;
-                        return;
-                    }
-
-                    for (auto subgroupNo : GetCellGroups(subcellNo))
-                    {
-                        mDirtyGroups.Push(subgroupNo);
-                    }
-                }
-
-                mCurrState->SetCell(subcellNo, newSubcell);
-            }
-        }
-    }
-*/
-
     void MarkCellGroups(u8 cellNo, u8 srcGroupNo)
     {
         mDirtyGroups.PushFlags(GetCellGroups(cellNo));
