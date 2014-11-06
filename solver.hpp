@@ -53,7 +53,7 @@ private:
         }
 
         u16 mask = ~finals;
-        for (u8 i = 0u; i != 9; ++i)
+        for (u8 i = 0u; i != 9u; ++i)
         {
             u16 cell = localGroup[i];
 
