@@ -20,10 +20,16 @@ public:
     void Push(u8 x)
     {
         assert(x < 81u);
-        bool first = x < 64u;
-        u64 bit = 1ull << (x % 64u);
-        mFlags[0] |= first * bit;
-        mFlags[1] |= !first * bit;
+        u8 i = 0u;
+        
+        if (x >= 64u)
+        {
+            ++i;
+            x -= 64u;
+        }
+
+        u64 bit = 1ull << x;
+        mFlags[i] |= bit;
     }
 
     void PushFlags(std::array<u64, 2> flags) { mFlags[0] |= flags[0]; mFlags[1] |= flags[1]; }
