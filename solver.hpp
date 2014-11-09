@@ -123,6 +123,9 @@ private:
         for (auto& group : GetGroups())
         {
             LockedPairsInGroup(group);
+            
+            if (!mDirtyCells.Empty())
+                return;
         }
     }
 
@@ -148,18 +151,27 @@ private:
     {
         while (!mDirtyCells.Empty())
         {
-            while (!mDirtyCells.Empty())
-            {
-                u8 cellNo = mDirtyCells.Pop();
-                ProcessCell(cellNo);
+            ProcessCurrStateRaw();
 
-                if (mContradiction)
-                {
-                    return;
-                }
-            }
+            if (mContradiction)
+                return;
 
             LockedPairs();
+
+            if (mContradiction)
+                return;
+        }
+    }
+
+    void ProcessCurrStateRaw()
+    {
+        while (!mDirtyCells.Empty())
+        {
+            u8 cellNo = mDirtyCells.Pop();
+            ProcessCell(cellNo);
+
+            if (mContradiction)
+                return;
         }
     }
 
