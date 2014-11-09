@@ -54,7 +54,7 @@ private:
         cell &= (cell - u16(1));
 
         if (cell == 0)
-            return false; // TODO: try cell += !cell * 511 to avoid branch
+            return false;
 
         cell &= (cell - u16(1));
 
@@ -87,10 +87,11 @@ private:
             count += (cell == lockedPair);
         }
 
-        mContradiction |= (count > 2);
-
         if (count != 2)
+        {
+            mContradiction |= (count > 2);
             return;
+        }
 
         for (auto cellNo : group)
         {
