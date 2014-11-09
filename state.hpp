@@ -167,7 +167,13 @@ public:
         {
             u8 n;
             is >> n;
-            assert(u8('0') <= n && n <= u8('9'));
+
+            if (!(u8('0') <= n && n <= u8('9')))
+            {
+                // Invalid
+                return is;
+            }
+
             state.SetCell(i, State::NumToCell(n - u8('0')));
         }
 
