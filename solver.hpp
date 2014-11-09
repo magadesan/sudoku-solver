@@ -65,8 +65,7 @@ private:
     {
         u16 lockedPair = 511;
 
-        u8 i = 0u;
-        for (; i != 9u; ++i)
+        for (u8 i = 0u; i != 9u; ++i)
         {
             u16 cell = mState.GetCell(group[i]);
 
@@ -81,15 +80,15 @@ private:
             return;
 
         u8 count = 0u;
-        for (++i; i != 9u; ++i)
+        for (u8 i = 0u; i != 9u; ++i)
         {
             u16 cell = mState.GetCell(group[i]);
             count += (cell == lockedPair);
         }
 
-        if (count != 1)
+        if (count != 2)
         {
-            mContradiction |= (count > 1);
+            mContradiction |= (count > 2);
             return;
         }
 
