@@ -49,6 +49,83 @@ private:
         }
     }
 
+    static bool CellIsPair(u16 cell) // cell != 0 is assumed
+    {
+        cell &= (cell - u16(1));
+
+        if (cell == 0)
+            return false; // TODO: try cell += !cell * 511 to avoid branch
+
+        cell &= (cell - u16(1));
+
+        return (cell == 0);
+    }
+
+    void LockedPairsInGroup(const std::array<u8, 9>& group)
+    {
+        u16 lockedPair = 511;
+
+        u8 i = 0u;
+        for (; i != 9u; ++i)
+        {
+            u16 cell = mState.GetCell(group[i]);
+
+            if (CellIsPair(cell))
+            {
+                lockedPair = cell;
+                break;
+            }
+        }
+
+        if (lockedPair == 511)
+            return;
+
+        u8 count = 0u;
+        for (; i != 9u; ++i)
+        {
+            u16 cell = mState.GetCell(group[i]);
+            count += (cell == lockedPair);
+        }
+
+        mContradiction |= (count > 2);
+
+        if (count != 2)
+            return;
+
+        for (auto cellNo : group)
+        {
+            u16 cell = mState.GetCell(cellNo);
+
+            if ((cell & lockedPair) != 0u)
+            {
+                if (cell == lockedPair)
+                    continue; // TODO: duplicating counter here?
+
+                cell &= ~lockedPair;
+                if ((cell & (cell - u16(1))) == 0u)
+                {
+                    if (cell == 0u)
+                    {
+                        mContradiction = true;
+                        return;
+                    }
+
+                    mDirtyCells.Push(cellNo); // TODO: try going back to normal strategy at first occurrence here
+                }
+            }
+
+            mState.SetCell(cellNo, cell);
+        }
+    }
+
+    void LockedPairs()
+    {
+        for (auto& group : GetGroups())
+        {
+            LockedPairsInGroup(group);
+        }
+    }
+
     std::string GetDirtyCellsInBinary() const
     {
         std::string result(81, '0');
@@ -71,13 +148,18 @@ private:
     {
         while (!mDirtyCells.Empty())
         {
-            u8 cellNo = mDirtyCells.Pop();
-            ProcessCell(cellNo);
-
-            if (mContradiction)
+            while (!mDirtyCells.Empty())
             {
-                break;
+                u8 cellNo = mDirtyCells.Pop();
+                ProcessCell(cellNo);
+
+                if (mContradiction)
+                {
+                    return;
+                }
             }
+
+            LockedPairs();
         }
     }
 
