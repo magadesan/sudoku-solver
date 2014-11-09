@@ -97,6 +97,60 @@ public:
         return 511;
     }
 
+    std::ostream& PrettyPrint(std::ostream& os) const
+    {
+        std::array<std::array<char, 41>, 41> grid;
+        for (auto& r : grid)
+        {
+            for (auto& c : r)
+                c = ':';
+        }
+
+        for (u8 i = 0u; i != 81u; ++i)
+        {
+            int row = i / 9;
+            int col = i % 9;
+
+            int r = 4 * row + 1;
+
+            if (row >= 3)
+                r += 2;
+
+            if (row >= 6)
+                r += 2;
+
+            int c = 4 * col + 1;
+
+            if (col >= 3)
+                c += 2;
+
+            if (col >= 6)
+                c += 2;
+
+            u16 cell = GetCell(i);
+
+            for (u8 k = 0u; k != 9; ++k)
+            {
+                int ki = k / 3;
+                int kj = k % 3;
+
+                grid[r + ki][c + kj] = ((cell & (1 << k)) ? char('1' + k) : ' ');
+            }
+        }
+
+        for (auto& r : grid)
+        {
+            for (auto& c : r)
+                os << c;
+
+            os << std::endl;
+        }
+
+        os << std::endl << std::endl << std::endl;
+
+        return os;
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const State& state)
     {
         for (u8 i = 0u; i != 81u; ++i)

@@ -15,74 +15,65 @@ class Solver
 private:
     using u8 = std::uint8_t;
     using u16 = std::uint16_t;
+    using u64 = std::uint64_t;
 
     State* mCurrState = nullptr;
     std::vector<State>* mCurrSolutions = nullptr;
-    CallbackQueue mDirtyGroups;
+    CallbackQueue mDirtyCells;
     bool mContradiction = false;
 
-    void MarkCellGroups(u8 cellNo)
+    void ProcessCell(u8 cellNo)
     {
-        mDirtyGroups.PushFlags(GetCellGroups(cellNo));
-    }
+        u16 cell = mCurrState->GetCell(cellNo);
+        u16 mask = ~cell;
 
-    void ProcessGroup(u8 groupNo)
-    {
-        auto& group = GetGroups()[groupNo];
-
-        std::array<u16, 9> localGroup;
-
-        for (u8 i = 0u; i != 9u; ++i)
-            localGroup[i] = mCurrState->GetCell(group[i]);
-
-        u16 finals = 0u;
-        u16 sum = 0u;
-
-        for (u8 i = 0u; i != 9u; ++i)
+        for (u8 neighbourNo : GetCellNeighbours(cellNo))
         {
-            u16 cell = localGroup[i];
-            cell *= ((cell & (cell - u16(1))) == 0);
-            finals |= cell;
-            sum += cell;
-        }
+            u16 neighbour = mCurrState->GetCell(neighbourNo);
 
-        if (sum != finals) // TODO: Is this a perfect test for a collision?
-        {
-            mContradiction = true;
-            return;
-        }
-
-        u16 mask = ~finals;
-        for (u8 i = 0u; i != 9u; ++i)
-        {
-            u16 cell = localGroup[i];
-
-            if ((cell & (cell - u16(1))) != 0)
+            if ((neighbour & cell) != 0u)
             {
-                u8 cellNo = group[i];
-                cell &= mask;
-
-                if ((cell & (cell - u16(1))) == 0)
+                neighbour &= mask; // TODO: maybe just use ~cell? #performance
+                if ((neighbour & (neighbour - u16(1))) == 0u) // TODO: try getting rid of all instances of u8(1) etc.
                 {
-                    if (cell == 0)
+                    if (neighbour == 0u)
                     {
                         mContradiction = true;
                         return;
                     }
 
-                    MarkCellGroups(cellNo);
+                    mDirtyCells.Push(neighbourNo);
                 }
-
-                mCurrState->SetCell(cellNo, cell);
             }
+
+            mCurrState->SetCell(neighbourNo, neighbour);
         }
+    }
+
+    std::string GetDirtyCellsInBinary() const
+    {
+        std::string result(81, '0');
+        auto dirtyCells = mDirtyCells;
+
+        while (true)
+        {
+            u8 cellNo = dirtyCells.Pop();
+
+            if (cellNo == u8(255))
+                break;
+
+            result[cellNo] = '1';
+        }
+
+        return result;
     }
 
     void ProcessCurrState()
     {
-        while (!mDirtyGroups.Empty())
+        while (!mDirtyCells.Empty())
         {
-            ProcessGroup(mDirtyGroups.Pop());
+            u8 cellNo = mDirtyCells.Pop();
+            ProcessCell(cellNo);
 
             if (mContradiction)
             {
@@ -91,16 +82,22 @@ private:
         }
     }
 
-    void MarkAllGroupsDirty()
+    void MarkFinalCellsDirty(const State& state)
     {
-        mDirtyGroups.PushFlags((~0u) - ((~0u) << 27u));
-        assert(mDirtyGroups.Size() == 27u);
+        for (u8 cellNo = 0u; cellNo != 81u; ++cellNo)
+        {
+            u16 cell = state.GetCell(cellNo);
+            if ((cell & (cell - u16(1))) == 0u)
+            {
+                mDirtyCells.Push(cellNo);
+            }
+        }
     }
 
     void Guess(u8 cellNo, u16 cell)
     {
         mCurrState->SetCell(cellNo, cell);
-        MarkCellGroups(cellNo);
+        mDirtyCells.Push(cellNo);
     }
 
     void SolveImpl(const State& state)
@@ -119,6 +116,7 @@ private:
         mCurrState = &currState;
 
         Guess(cellNo, cell);
+
         ProcessCurrState();
 
         ProcessingExhausted();
@@ -150,6 +148,7 @@ private:
             if ((newCell & cell) != u16(0))
             {
                 SolveImplWithGuess(*backupState, guessCellNo, newCell);
+                mDirtyCells.Clear();
             }
 
             newCell >>= u16(1);
@@ -161,7 +160,7 @@ private:
 public:
     State ShallowSolve(const State& state)
     {
-        MarkAllGroupsDirty();
+        MarkFinalCellsDirty(state);
 
         State currState = state;
         mCurrState = &currState;
@@ -178,7 +177,7 @@ public:
         std::vector<State> solutions;
         mCurrSolutions = &solutions;
 
-        MarkAllGroupsDirty();
+        MarkFinalCellsDirty(state);
         SolveImpl(state);
 
         mCurrSolutions = nullptr;

@@ -25,5 +25,8 @@ int main()
     AssertEqual(__LINE__, q.Pop(), 7);
     AssertEqual(__LINE__, q.Empty(), true);
 
+    q.Push(32);
+    AssertEqual(__LINE__, q.Pop(), 32);
+
     return 0;
 }

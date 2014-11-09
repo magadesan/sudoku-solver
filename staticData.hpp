@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <cstdint>
 
 std::array<std::array<uint8_t, 9>, 27> CreateGroups()
@@ -50,4 +51,44 @@ std::uint32_t GetCellGroups(uint8_t cellNo)
         (1u << (cellNo / 9u)) |
         (1u << (9u + cellNo % 9u)) |
         (1u << (18u + 3u * (cellNo / 27u) + (cellNo % 9u) / 3u)));
+}
+
+std::array<std::array<std::uint8_t, 20>, 81> CreateCellNeighbours()
+{
+    using u8 = std::uint8_t;
+    std::array<std::array<u8, 20>, 81> neighbours;
+    const auto& groups = GetGroups();
+
+    for (u8 i = 0u; i != 81u; ++i)
+    {
+        std::bitset<81> set;
+
+        for (u8 groupNo : (u8[]){u8(i / 9u), u8(9u + i % 9u), u8(18u + 3u * (i / 27u) + (i % 9u) / 3u)})
+        {
+            for (auto neighbour : groups[groupNo])
+            {
+                set.set(neighbour);
+            }
+        }
+
+        auto& nn = neighbours[i];
+
+        u8 k = 0u;
+        for (u8 j = 0u; j != 81u; j++)
+        {
+            if (set.test(j) && i != j)
+            {
+                nn[k] = j;
+                ++k;
+            }
+        }
+    }
+
+    return neighbours;
+}
+
+const std::array<std::uint8_t, 20>& GetCellNeighbours(std::uint8_t cellNo)
+{
+    static const std::array<std::array<std::uint8_t, 20>, 81> cellNeighbours = CreateCellNeighbours();
+    return cellNeighbours[cellNo];
 }
