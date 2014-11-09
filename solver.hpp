@@ -25,7 +25,6 @@ private:
     void ProcessCell(u8 cellNo)
     {
         u16 cell = mCurrState->GetCell(cellNo);
-        u16 mask = ~cell;
 
         for (u8 neighbourNo : GetCellNeighbours(cellNo))
         {
@@ -33,7 +32,7 @@ private:
 
             if ((neighbour & cell) != 0u)
             {
-                neighbour &= mask; // TODO: maybe just use ~cell? #performance
+                neighbour &= ~cell;
                 if ((neighbour & (neighbour - u16(1))) == 0u) // TODO: try getting rid of all instances of u8(1) etc.
                 {
                     if (neighbour == 0u)
