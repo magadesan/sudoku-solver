@@ -81,15 +81,15 @@ private:
             return;
 
         u8 count = 0u;
-        for (; i != 9u; ++i)
+        for (++i; i != 9u; ++i)
         {
             u16 cell = mState.GetCell(group[i]);
             count += (cell == lockedPair);
         }
 
-        if (count != 2)
+        if (count != 1)
         {
-            mContradiction |= (count > 2);
+            mContradiction |= (count > 1);
             return;
         }
 
