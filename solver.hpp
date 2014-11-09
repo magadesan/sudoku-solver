@@ -17,18 +17,18 @@ private:
     using u16 = std::uint16_t;
     using u64 = std::uint64_t;
 
-    State* mCurrState = nullptr;
+    State mCurrState;
     std::vector<State>* mCurrSolutions = nullptr;
     CallbackQueue mDirtyCells;
     bool mContradiction = false;
 
     void ProcessCell(u8 cellNo)
     {
-        u16 cell = mCurrState->GetCell(cellNo);
+        u16 cell = mCurrState.GetCell(cellNo);
 
         for (u8 neighbourNo : GetCellNeighbours(cellNo))
         {
-            u16 neighbour = mCurrState->GetCell(neighbourNo);
+            u16 neighbour = mCurrState.GetCell(neighbourNo);
 
             if ((neighbour & cell) != 0u)
             {
@@ -45,7 +45,7 @@ private:
                 }
             }
 
-            mCurrState->SetCell(neighbourNo, neighbour);
+            mCurrState.SetCell(neighbourNo, neighbour);
         }
     }
 
@@ -81,11 +81,11 @@ private:
         }
     }
 
-    void MarkFinalCellsDirty(const State& state)
+    void MarkFinalCellsDirty()
     {
         for (u8 cellNo = 0u; cellNo != 81u; ++cellNo)
         {
-            u16 cell = state.GetCell(cellNo);
+            u16 cell = mCurrState.GetCell(cellNo);
             if ((cell & (cell - u16(1))) == 0u)
             {
                 mDirtyCells.Push(cellNo);
@@ -95,29 +95,13 @@ private:
 
     void Guess(u8 cellNo, u16 cell)
     {
-        mCurrState->SetCell(cellNo, cell);
+        mCurrState.SetCell(cellNo, cell);
         mDirtyCells.Push(cellNo);
     }
 
-    void SolveImpl(const State& state)
+    void SolveImpl()
     {
-        State currState = state;
-        mCurrState = &currState;
-
         ProcessCurrState();
-
-        ProcessingExhausted();
-    }
-
-    void SolveImplWithGuess(const State& state, u8 cellNo, u16 cell)
-    {
-        State currState = state;
-        mCurrState = &currState;
-
-        Guess(cellNo, cell);
-
-        ProcessCurrState();
-
         ProcessingExhausted();
     }
 
@@ -129,46 +113,42 @@ private:
             return;
         }
 
-        u8 guessCellNo = mCurrState->PickNonFinalisedCell();
+        u8 guessCellNo = mCurrState.PickNonFinalisedCell();
 
         if (guessCellNo == u8(255))
         {
-            mCurrSolutions->push_back(*mCurrState);
+            mCurrSolutions->push_back(mCurrState);
             return;
         }
 
-        u16 cell = mCurrState->GetCell(guessCellNo);
+        u16 cell = mCurrState.GetCell(guessCellNo);
         u16 newCell = u16(1) << u16(8);
 
-        State* backupState = mCurrState;
+        State backupState = mCurrState;
 
         while (newCell > u16(0))
         {
             if ((newCell & cell) != u16(0))
             {
-                SolveImplWithGuess(*backupState, guessCellNo, newCell);
+                Guess(guessCellNo, newCell);
+                SolveImpl();
+                mCurrState = backupState;
                 mDirtyCells.Clear();
             }
 
             newCell >>= u16(1);
         }
-
-        mCurrState = backupState;
     }
 
 public:
     State ShallowSolve(const State& state)
     {
-        MarkFinalCellsDirty(state);
+        mCurrState = state;
 
-        State currState = state;
-        mCurrState = &currState;
-
+        MarkFinalCellsDirty();
         ProcessCurrState();
 
-        mCurrState = nullptr;
-
-        return currState;
+        return mCurrState;
     }
 
     std::vector<State> Solve(const State& state)
@@ -176,8 +156,10 @@ public:
         std::vector<State> solutions;
         mCurrSolutions = &solutions;
 
-        MarkFinalCellsDirty(state);
-        SolveImpl(state);
+        mCurrState = state;
+
+        MarkFinalCellsDirty();
+        SolveImpl();
 
         mCurrSolutions = nullptr;
 
